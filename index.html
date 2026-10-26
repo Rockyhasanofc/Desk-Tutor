@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>স্টাডি ডেস্ক</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: বাঁ দিকে হিরো + খোলা টপিকের কার্ড (ভিডিও, ছবি, PDF, নোট), ডান দিকে গাঢ় নেভি টপিক-তালিকা; ছোট স্ক্রিনে নিচে নিচে */
+:root {
+  --bg: #f3f5f9;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --ink: #0f172a;
+  --muted: #5a667b;
+  --line: #e2e7ef;
+  --brand: #14264a;
+  --brand-ink: #ffffff;
+  --accent: #f5a524;
+  --accent-ink: #1d1400;
+  --ok: #17a05d;
+  --warn: #c0392b;
+  --hero: #12213f;
+  --hero-ink: #ffffff;
+  --hero-muted: #a9b6d0;
+  --rail: #0c1426;
+  --rail-ink: #e8edf7;
+  --rail-muted: #8e9bb4;
+  --rail-line: #1f2b45;
+  --rail-hover: rgba(255, 255, 255, .06);
+  --rail-active: rgba(255, 255, 255, .11);
+  --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px rgba(15, 23, 42, .06);
+  --f-display: 'Anek Bangla', 'Hind Siliguri', system-ui, sans-serif;
+  --f-body: 'Hind Siliguri', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a101d;
+    --surface: #111a2c;
+    --surface-2: #0e1727;
+    --ink: #e8edf7;
+    --muted: #93a0b8;
+    --line: #1f2b45;
+    --brand: #4f8cff;
+    --brand-ink: #ffffff;
+    --hero: #162646;
+    --rail: #070c17;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 48px;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button, label[for] { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- টপ বার ---------- */
+.topbar { max-width: 1360px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 1.3rem/1 var(--f-display); }
+.logo { width: 38px; height: 38px; border-radius: 11px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.today { color: var(--muted); font-size: .92rem; text-align: right; }
+
+/* ---------- মূল লেআউট ---------- */
+.shell { max-width: 1360px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+.main { min-width: 0; display: grid; gap: 20px; }
+
+/* ---------- হিরো ---------- */
+.hero {
+  background: var(--hero); color: var(--hero-ink); border-radius: 18px; padding: 24px 26px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;
+}
+.hero h2 { font: 700 1.75rem/1.25 var(--f-display); margin: 0; text-wrap: balance; }
+.hero p { margin: 4px 0 0; color: var(--hero-muted); }
+.stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.stat { background: rgba(255, 255, 255, .08); border-radius: 12px; padding: 9px 16px; min-width: 96px; }
+.stat b { display: block; font: 700 1.35rem/1.25 var(--f-display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: .8rem; color: var(--hero-muted); }
+.ring { position: relative; width: 104px; height: 104px; flex: none; }
+.ring svg { display: block; transform: rotate(-90deg); }
+.ring .track { stroke: rgba(255, 255, 255, .14); }
+.ring .bar { stroke: var(--accent); transition: stroke-dasharray .4s; }
+.ring .pct { position: absolute; inset: 0; display: grid; place-items: center; font: 700 1.2rem/1 var(--f-display); }
+
+/* ---------- টপিক কার্ড ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.card.over { outline: 3px dashed var(--accent); outline-offset: -3px; }
+.sec { padding: 20px 22px; display: grid; gap: 14px; border-top: 1px solid var(--line); }
+.sec:first-child { border-top: 0; }
+.sec[hidden] { display: none; }
+.eyebrow { margin: 0; font-size: .85rem; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+.title-input {
+  width: calc(100% + 16px); margin: -6px -8px; padding: 6px 8px; border: 1px solid transparent; border-radius: 10px;
+  background: none; font: 700 1.6rem/1.35 var(--f-display); text-overflow: ellipsis;
+}
+.title-input.sm { font-size: 1.2rem; }
+.title-input:hover, .title-input:focus { border-color: var(--line); background: var(--surface-2); }
+.head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.head h3 { font: 600 1.05rem/1.3 var(--f-display); margin: 0; }
+.head .cnt { color: var(--muted); font-weight: 500; margin-left: 6px; font-size: .95rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.spacer { flex: 1 1 0; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: 9px 15px; border-radius: 11px; font-weight: 500; line-height: 1.3; white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.sm { padding: 6px 12px; font-size: .92rem; border-radius: 9px; }
+.btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.btn.primary:hover { filter: brightness(1.12); }
+.btn.done { background: color-mix(in srgb, var(--ok) 14%, var(--surface)); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); color: var(--ok); }
+.btn.accent { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.accent:hover { filter: brightness(1.06); }
+.btn.danger { color: var(--warn); }
+.btn.danger.armed { background: var(--warn); border-color: var(--warn); color: #fff; }
+.btn[disabled] { opacity: .55; cursor: default; }
+.field { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2); }
+.field:focus { border-color: var(--brand); outline: none; }
+
+/* ---------- প্লেয়ার ও ভিডিও তালিকা ---------- */
+.stagevid { padding: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.player { aspect-ratio: 16 / 9; max-width: 100%; background: #000; }
+.player iframe { width: 100%; height: 100%; border: 0; display: block; }
+.player video { width: 100%; height: 100%; display: block; background: #000; object-fit: contain; }
+.filebox { display: grid; place-items: center; }
+.pmsg { color: #cbd5e1; margin: 0; padding: 20px; text-align: center; }
+.vmeta { padding: 18px 22px 20px; display: grid; gap: 12px; }
+.vlist { display: grid; gap: 6px; }
+.vrow {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; width: 100%;
+  border: 1px solid transparent; background: var(--surface-2); border-radius: 12px; padding: 8px;
+}
+.vrow:hover { border-color: var(--line); }
+.vrow[aria-current="true"] { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 8%, var(--surface)); }
+.vthumb { position: relative; width: 96px; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #1b2744; display: grid; place-items: center; color: #8e9bb4; }
+.vthumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vthumb .tick { position: absolute; right: 4px; bottom: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; }
+.vrow .t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; line-height: 1.4; font-weight: 500; }
+.vrow .m { display: block; font-size: .8rem; color: var(--muted); }
+.vrow .m b { color: var(--brand); font-weight: 600; }
+
+/* ---------- যোগ করার জায়গা ---------- */
+.addpanel { display: grid; gap: 10px; }
+.linkrow { display: flex; gap: 8px; }
+.addbtns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.amsg { margin: 0; font-size: .88rem; color: var(--warn); }
+.amsg.ok { color: var(--ok); }
+.amsg:empty { display: none; }
+.note-small { color: var(--muted); font-size: .86rem; margin: 0; }
+.note-small a { color: var(--brand); font-weight: 500; }
+
+/* ---------- ছবি ও PDF ---------- */
+.imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.imgcell { position: relative; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface-2); }
+.imgopen { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; }
+.imgopen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.imgcap { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 8px 5px; font-size: .78rem; line-height: 1.3; color: #fff; background: linear-gradient(transparent, rgba(0, 0, 0, .65)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+.imgdel {
+  position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 99px;
+  padding: 5px; background: rgba(0, 0, 0, .6); color: #fff; font-size: .78rem; line-height: 1;
+}
+.imgdel .lbl { display: none; padding-right: 4px; }
+.imgdel.armed { background: var(--warn); }
+.imgdel.armed .lbl { display: inline; }
+.pdfrow { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+.pdfrow .ic { color: var(--brand); flex: none; display: grid; }
+.pdfrow .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 500; line-height: 1.35; }
+.pdfrow .nm small { display: block; color: var(--muted); font-weight: 400; }
+.pdfrow .rowbtns { display: flex; gap: 6px; flex: none; }
+.pdfview { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.pdfview .bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.pdfview .bar b { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.pdfview .frame { height: min(75vh, 820px); }
+.pdfview iframe { width: 100%; height: 100%; border: 0; display: block; }
+.stack { display: grid; gap: 10px; }
+
+.notes textarea {
+  width: 100%; min-height: 120px; resize: vertical; padding: 12px 14px; line-height: 1.6;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2);
+}
+.saved { font-size: .82rem; color: var(--ok); min-height: 1.2em; }
+
+.lightbox {
+  position: fixed; inset: 0; z-index: 50; background: rgba(5, 9, 18, .9); display: grid; place-items: center; align-content: center; gap: 10px;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.lightbox img { max-width: 100%; max-height: 82vh; border-radius: 10px; display: block; }
+.lightbox .lbcap { margin: 0; color: #cbd5e1; font-size: .92rem; text-align: center; }
+.lbclose {
+  position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px));
+  width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .16); color: #fff; display: grid; place-items: center;
+}
+
+/* ---------- ফাঁকা অবস্থা ---------- */
+.welcome { padding: 40px 24px 36px; display: grid; gap: 22px; justify-items: center; text-align: center; }
+.welcome .badge { width: 68px; height: 68px; border-radius: 20px; background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); display: grid; place-items: center; }
+.welcome h3 { font: 700 1.5rem/1.3 var(--f-display); margin: 0; text-wrap: balance; }
+.welcome p { margin: 6px 0 0; color: var(--muted); max-width: 50ch; }
+.how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 720px; text-align: left; }
+.how div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.how b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font-size: .85rem; margin-bottom: 8px; }
+.how span { font-size: .93rem; }
+.emptytopic { text-align: center; color: var(--muted); padding: 6px 0 2px; margin: 0; }
+
+/* ---------- ডান পাশের প্যানেল ---------- */
+.rail {
+  background: var(--rail); color: var(--rail-ink); border-radius: 18px; min-width: 0;
+  display: flex; flex-direction: column; position: sticky; top: 16px; max-height: calc(100vh - 32px);
+  box-shadow: var(--shadow);
+}
+.railhead { padding: 16px 16px 0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.railhead h2 { font: 700 1.15rem/1.3 var(--f-display); margin: 0; }
+.railhead span { color: var(--rail-muted); font-size: .85rem; }
+.tools { padding: 14px; display: grid; gap: 10px; border-bottom: 1px solid var(--rail-line); }
+.rfield {
+  width: 100%; min-width: 0; padding: 10px 12px; border-radius: 11px; border: 1px solid var(--rail-line);
+  background: rgba(255, 255, 255, .06); color: var(--rail-ink);
+}
+.rfield::placeholder { color: var(--rail-muted); }
+.rfield:focus { border-color: var(--accent); outline: none; }
+.searchbox { position: relative; display: block; }
+.searchbox svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--rail-muted); }
+.searchbox .rfield { padding-left: 36px; }
+.newrow { display: flex; gap: 8px; }
+.list { list-style: none; margin: 0; padding: 8px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+.item {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center;
+  width: 100%; text-align: left; background: none; border: 0; border-radius: 12px; padding: 8px; color: inherit;
+}
+.item:hover { background: var(--rail-hover); }
+.item[aria-current="true"] { background: var(--rail-active); }
+.tile { width: 46px; height: 46px; border-radius: 13px; background: rgba(255, 255, 255, .07); color: var(--accent); display: grid; place-items: center; position: relative; }
+.item.is-done .tile { color: #fff; background: var(--ok); }
+.item .t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; line-height: 1.4; font-weight: 600; }
+.item .m { display: block; margin-top: 2px; font-size: .8rem; color: var(--rail-muted); }
+.item .pbar { display: block; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .1); margin-top: 6px; overflow: hidden; }
+.item .pbar i { display: block; height: 100%; background: var(--accent); }
+.empty-list { padding: 26px 16px; text-align: center; color: var(--rail-muted); }
+.msg { margin: 0; font-size: .86rem; min-height: 1.2em; color: #ff9b8f; }
+.msg.ok { color: #7ee0b0; }
+.msg:empty { display: none; }
+
+/* ---------- ফুটার ---------- */
+.foot { max-width: 1360px; margin: 36px auto 0; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; color: var(--muted); font-size: .92rem; }
+.foot .who { display: inline-flex; align-items: center; gap: 10px; }
+.foot .mark { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.foot b { color: var(--ink); font-weight: 600; letter-spacing: .01em; }
+
+@media (max-width: 960px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; max-height: none; order: -1; }
+  .list { overflow: visible; }
+  .hero { padding: 20px; }
+  .hero h2 { font-size: 1.45rem; }
+  .title-input { font-size: 1.3rem; }
+  .how { grid-template-columns: minmax(0, 1fr); }
+  .sec { padding: 16px; }
+  .vmeta { padding: 16px; }
+  .today { display: none; }
+  .pdfrow { flex-wrap: wrap; }
+  .pdfrow .nm { flex-basis: calc(100% - 40px); }
+  .pdfrow .rowbtns { margin-left: 36px; }
+  .linkrow { flex-wrap: wrap; }
+  .linkrow .btn { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .ring .bar { transition: none; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" data-icon="cap" data-size="22"></span>
+    <span>স্টাডি ডেস্ক</span>
+  </div>
+  <div class="today" id="today"></div>
+</header>
+
+<div class="shell">
+  <div class="main">
+    <section class="hero" aria-live="polite">
+      <div>
+        <h2 id="greet">শুভ দিন!</h2>
+        <p id="heroSub"></p>
+        <div class="stats">
+          <div class="stat"><b id="stTopics">০</b><span>টপিক</span></div>
+          <div class="stat"><b id="stVids">০</b><span>ভিডিও শেষ</span></div>
+          <div class="stat"><b id="stFiles">০</b><span>ছবি ও PDF</span></div>
+        </div>
+      </div>
+      <div class="ring" role="img" aria-label="ভিডিও দেখার অগ্রগতি">
+        <svg width="104" height="104" viewBox="0 0 104 104" aria-hidden="true">
+          <circle class="track" cx="52" cy="52" r="44" fill="none" stroke-width="9"></circle>
+          <circle class="bar" id="ringBar" cx="52" cy="52" r="44" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 276.46"></circle>
+        </svg>
+        <div class="pct" id="ringPct">০%</div>
+      </div>
+    </section>
+
+    <section id="stage" aria-live="polite"></section>
+  </div>
+
+  <aside class="rail" aria-label="টপিকের তালিকা">
+    <div class="railhead"><h2>আমার টপিক</h2><span id="topicCount"></span></div>
+    <div class="tools">
+      <form id="newTopicForm">
+        <div class="newrow">
+          <input class="rfield" id="newTopic" type="text" placeholder="নতুন টপিকের নাম লিখুন" aria-label="নতুন টপিকের নাম" autocomplete="off" maxlength="120">
+          <button class="btn accent" type="submit"><span data-icon="plus" data-size="16"></span>তৈরি</button>
+        </div>
+      </form>
+      <p class="msg" id="msgTopic" role="status"></p>
+      <label class="searchbox">
+        <span data-icon="search" data-size="16"></span>
+        <input class="rfield" id="q" type="search" placeholder="টপিক খুঁজুন" aria-label="টপিক খুঁজুন" autocomplete="off">
+      </label>
+    </div>
+    <ul class="list" id="list"></ul>
+  </aside>
+</div>
+
+<footer class="foot">
+  <span class="who"><span class="mark" data-icon="cap" data-size="16"></span><span>DEVELOPED BY<b>ROCKY-HASAN</b></span></span>
+  <span>© <span id="yr"></span> স্টাডি ডেস্ক</span>
+</footer>
+
+<input class="sr" id="fVideo" type="file" accept="video/*,.mp4,.webm,.m4v,.mov" multiple tabindex="-1" aria-hidden="true">
+<input class="sr" id="fPdf" type="file" accept="application/pdf,.pdf" multiple tabindex="-1" aria-hidden="true">
+<input class="sr" id="fImg" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+
+<script>
+(function () {
+  'use strict';
+  var KEY_TOPICS = 'studydesk.topics.v2';
+  var KEY_UI = 'studydesk.ui.v2';
+  var NS = 'http://www.w3.org/2000/svg';
+  var RING = 2 * Math.PI * 44;
+
+  var $ = function (s) { return document.querySelector(s); };
+  var bn = function (n) { return Number(n).toLocaleString('bn-BD'); };
+  var toArr = function (l) { return Array.prototype.slice.call(l || []); };
+
+  function load(key, fallback) {
+    try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
+    catch (e) { return fallback; }
+  }
+  function store(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+  /* ---------- আগের সংস্করণের ডেটা নতুন কাঠামোয় আনা ---------- */
+  function migrate() {
+    var oc = load('studydesk.classes.v1', []);
+    var ob = load('studydesk.books.v1', []);
+    var out = [];
+    oc.forEach(function (c) {
+      var items = [];
+      if (c.kind === 'file') items.push({ id: uid(), kind: 'video', title: c.title, fileId: c.fileId, size: c.size || 0, done: !!c.done, pos: c.pos || 0 });
+      else items.push({ id: uid(), kind: 'yt', title: c.title, vid: c.vid || null, list: c.list || null, start: c.start || 0, done: !!c.done });
+      (c.files || []).forEach(function (a) { items.push({ id: uid(), kind: a.kind, title: a.name, fileId: a.id, size: a.size || 0 }); });
+      out.push({ id: uid(), title: c.title, note: c.note || '', items: items });
+    });
+    if (ob.length) {
+      out.push({ id: uid(), title: 'আমার বই', note: '', items: ob.map(function (b) {
+        return { id: uid(), kind: 'pdf', title: b.title, fileId: b.id, size: b.size || 0 };
+      }) });
+    }
+    return out;
+  }
+
+  var topics = load(KEY_TOPICS, null);
+  if (!topics) { topics = migrate(); store(KEY_TOPICS, topics); }
+  var ui = load(KEY_UI, { topic: null, vid: null });
+  var query = '';
+  var ctx = null;
+  var lightbox = null;
+  var armedTimer = null;
+  var savedTimer = null;
+
+  function saveT() { store(KEY_TOPICS, topics); }
+  function saveUI() { store(KEY_UI, ui); }
+
+  /* ---------- আইকন ---------- */
+  var ICONS = {
+    play: '<polygon points="7 4 19 12 7 20 7 4" fill="currentColor"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/>',
+    ext: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+    next: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    prev: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+    file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    cap: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11.5V16c0 1.2 2.7 3 6 3s6-1.8 6-3v-4.5"/><path d="M22 9v6"/>',
+    film: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 15h18M8 4v16M16 4v16"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  function icon(name, size) {
+    var s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('width', size || 18);
+    s.setAttribute('height', size || 18);
+    s.setAttribute('fill', 'none');
+    s.setAttribute('stroke', 'currentColor');
+    s.setAttribute('stroke-width', '2');
+    s.setAttribute('stroke-linecap', 'round');
+    s.setAttribute('stroke-linejoin', 'round');
+    s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = ICONS[name];
+    return s;
+  }
+
+  /* ---------- IndexedDB (PDF, ছবি ও ভিডিও ফাইল) ---------- */
+  var dbPromise = null;
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function (resolve, reject) {
+      var req = indexedDB.open('studydesk', 1);
+      req.onupgradeneeded = function () { req.result.createObjectStore('files'); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+    return dbPromise;
+  }
+  function tx(mode, fn) {
+    return openDB().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var t = db.transaction('files', mode);
+        var r = fn(t.objectStore('files'));
+        t.oncomplete = function () { resolve(r && r.result); };
+        t.onerror = function () { reject(t.error); };
+        t.onabort = function () { reject(t.error); };
+      });
+    });
+  }
+  function putFile(id, blob) { return tx('readwrite', function (s) { return s.put(blob, id); }); }
+  function getFile(id) { return tx('readonly', function (s) { return s.get(id); }); }
+  function delFiles(ids) { if (!ids.length) return Promise.resolve(); return tx('readwrite', function (s) { ids.forEach(function (id) { s.delete(id); }); }); }
+
+  /* ---------- ফাইলের ধরন ---------- */
+  function isPdf(f) { return /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name); }
+  function isImg(f) { return /^image\//.test(f.type); }
+  function isVid(f) { return /^video\//.test(f.type) || /\.(mp4|webm|m4v|mov|ogv)$/i.test(f.name); }
+  function stripExt(n) { return String(n).replace(/\.[^.]+$/, ''); }
+  function isVideoItem(it) { return it.kind === 'yt' || it.kind === 'video'; }
+
+  /* ---------- YouTube লিংক বোঝা ---------- */
+  function parseYT(raw) {
+    var u;
+    try { u = new URL(String(raw).trim()); } catch (e) { return null; }
+    var host = u.hostname.replace(/^www\./, '').replace(/^m\./, '');
+    var id = null;
+    var list = u.searchParams.get('list');
+    if (host === 'youtu.be') {
+      id = u.pathname.slice(1).split('/')[0];
+    } else if (host === 'youtube.com' || host === 'music.youtube.com' || host === 'youtube-nocookie.com') {
+      if (u.pathname === '/watch') id = u.searchParams.get('v');
+      else {
+        var m = u.pathname.match(/^\/(embed|shorts|live|v)\/([\w-]{11})/);
+        if (m) id = m[2];
+      }
+    } else { return null; }
+    if (id && !/^[\w-]{11}$/.test(id)) id = null;
+    if (!id && !list) return null;
+    var start = parseInt(u.searchParams.get('t') || u.searchParams.get('start') || '', 10);
+    return { vid: id, list: id ? null : list, start: isNaN(start) ? 0 : start };
+  }
+  function embedUrl(c) {
+    var base = 'https://www.youtube-nocookie.com/embed/';
+    if (c.vid) return base + c.vid + '?rel=0' + (c.start ? '&start=' + c.start : '');
+    return base + 'videoseries?list=' + encodeURIComponent(c.list) + '&rel=0';
+  }
+  function watchUrl(c) {
+    return c.vid ? 'https://www.youtube.com/watch?v=' + c.vid
+                 : 'https://www.youtube.com/playlist?list=' + encodeURIComponent(c.list);
+  }
+  function fetchTitle(url) {
+    var ctl = new AbortController();
+    var timer = setTimeout(function () { ctl.abort(); }, 4000);
+    return fetch('https://noembed.com/embed?url=' + encodeURIComponent(url), { signal: ctl.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { clearTimeout(timer); return (j && j.title) || ''; })
+      .catch(function () { clearTimeout(timer); return ''; });
+  }
+
+  /* ---------- ছোট DOM সহায়ক ---------- */
+  function h(tag, attrs, kids) {
+    var el = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'class') el.className = attrs[k];
+      else if (k === 'text') el.textContent = attrs[k];
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), attrs[k]);
+      else el.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (kid) { if (kid) el.appendChild(kid); });
+    return el;
+  }
+  function btn(label, ic, cls, onclick) {
+    var b = h('button', { class: 'btn ' + (cls || ''), type: 'button' }, [
+      ic ? icon(ic, 17) : null,
+      h('span', { class: 'lbl', text: label })
+    ]);
+    if (onclick) b.addEventListener('click', onclick);
+    return b;
+  }
+  function linkBtn(label, ic, href, cls) {
+    return h('a', { class: 'btn ' + (cls || ''), href: href, target: '_blank', rel: 'noopener' }, [
+      icon(ic, 15), h('span', { class: 'lbl', text: label })
+    ]);
+  }
+  function fmtSize(b) {
+    if (b > 1048576) return bn((b / 1048576).toFixed(1)) + ' MB';
+    return bn(Math.max(1, Math.round(b / 1024))) + ' KB';
+  }
+  function armDelete(b, action, armedText, resetText) {
+    var lbl = b.querySelector('.lbl');
+    if (b.classList.contains('armed')) { clearTimeout(armedTimer); action(); return; }
+    b.classList.add('armed');
+    lbl.textContent = armedText || 'নিশ্চিত? আবার চাপুন';
+    armedTimer = setTimeout(function () {
+      b.classList.remove('armed');
+      lbl.textContent = resetText || 'মুছুন';
+    }, 3000);
+  }
+  function closeLightbox() { if (lightbox) { lightbox.remove(); lightbox = null; } }
+  function curTopic() { return topics.filter(function (x) { return x.id === ui.topic; })[0]; }
+  function itemsOf(t, kind) {
+    return t.items.filter(function (it) { return kind === 'video' ? isVideoItem(it) : it.kind === kind; });
+  }
+  function curVideo(t) {
+    var vids = itemsOf(t, 'video');
+    return vids.filter(function (v) { return v.id === ui.vid; })[0] || vids[0] || null;
+  }
+  function fileIdsOf(items) { return items.filter(function (it) { return it.fileId; }).map(function (it) { return it.fileId; }); }
+
+  /* ---------- হিরো ও তালিকা ---------- */
+  function greeting() {
+    var hr = new Date().getHours();
+    if (hr < 5) return 'শুভ রাত্রি';
+    if (hr < 12) return 'শুভ সকাল';
+    if (hr < 15) return 'শুভ দুপুর';
+    if (hr < 18) return 'শুভ বিকেল';
+    return 'শুভ সন্ধ্যা';
+  }
+  function counts() {
+    var vids = 0, done = 0, files = 0;
+    topics.forEach(function (t) {
+      t.items.forEach(function (it) {
+        if (isVideoItem(it)) { vids++; if (it.done) done++; }
+        else files++;
+      });
+    });
+    return { vids: vids, done: done, files: files };
+  }
+  function renderHero() {
+    var c = counts();
+    var pct = c.vids ? c.done / c.vids : 0;
+    $('#greet').textContent = greeting() + '!';
+    $('#heroSub').textContent = !topics.length ? 'প্রথম টপিকটি বানিয়ে পড়া শুরু করুন।'
+      : (!c.vids ? 'টপিকে ভিডিও, ছবি আর PDF যোগ করুন।'
+      : (c.done === c.vids ? 'সব ভিডিও দেখা শেষ। দারুণ কাজ!' : 'আর ' + bn(c.vids - c.done) + 'টি ভিডিও বাকি আছে।'));
+    $('#stTopics').textContent = bn(topics.length);
+    $('#stVids').textContent = bn(c.done) + '/' + bn(c.vids);
+    $('#stFiles').textContent = bn(c.files);
+    $('#ringPct').textContent = bn(Math.round(pct * 100)) + '%';
+    $('#ringBar').setAttribute('stroke-dasharray', (pct * RING).toFixed(1) + ' ' + RING.toFixed(1));
+  }
+  function topicMeta(t) {
+    var v = itemsOf(t, 'video').length, p = itemsOf(t, 'pdf').length, i = itemsOf(t, 'image').length;
+    var parts = [];
+    if (v) parts.push(bn(v) + ' ভিডিও');
+    if (p) parts.push(bn(p) + ' PDF');
+    if (i) parts.push(bn(i) + ' ছবি');
+    return parts.length ? parts.join(' · ') : 'ফাঁকা';
+  }
+  function renderRail() {
+    $('#topicCount').textContent = topics.length ? bn(topics.length) + 'টি' : '';
+    var ul = $('#list');
+    ul.textContent = '';
+    var q = query.trim().toLowerCase();
+    if (!topics.length) {
+      ul.appendChild(h('li', { class: 'empty-list', text: 'এখনও কোনো টপিক নেই। উপরের ঘরে একটা নাম লিখে "তৈরি" চাপুন।' }));
+      return;
+    }
+    var shown = topics.filter(function (t) { return !q || t.title.toLowerCase().indexOf(q) > -1; });
+    if (!shown.length) { ul.appendChild(h('li', { class: 'empty-list', text: 'এই নামে কোনো টপিক নেই।' })); return; }
+    shown.forEach(function (t) {
+      var vids = itemsOf(t, 'video');
+      var done = vids.filter(function (v) { return v.done; }).length;
+      var all = vids.length > 0 && done === vids.length;
+      var kids = [h('span', { class: 't', text: t.title }), h('span', { class: 'm', text: topicMeta(t) })];
+      if (vids.length) kids.push(h('span', { class: 'pbar' }, [h('i', { style: 'width:' + Math.round(done / vids.length * 100) + '%' })]));
+      var b = h('button', {
+        class: 'item' + (all ? ' is-done' : ''), type: 'button',
+        'aria-current': String(ui.topic === t.id),
+        onclick: function () { selectTopic(t.id); }
+      }, [h('span', { class: 'tile' }, [icon(all ? 'check' : 'folder', 22)]), h('span', {}, kids)]);
+      ul.appendChild(h('li', {}, [b]));
+    });
+  }
+  function renderOuter() { renderHero(); renderRail(); }
+
+  /* ---------- টপিক খোলা ---------- */
+  function welcome() {
+    var has = topics.length > 0;
+    var kids = [
+      h('span', { class: 'badge' }, [icon('folder', 30)]),
+      h('div', {}, [
+        h('h3', { text: has ? 'একটা টপিক বেছে নিন' : 'প্রথম টপিকটি বানান' }),
+        h('p', { text: has ? 'তালিকা থেকে একটা টপিকে চাপুন, অথবা নতুন একটা বানান।'
+          : 'টপিক মানে একটা বিষয় বা অধ্যায়, যেমন "ত্রিকোণমিতি"। তার ভেতরে নিজের মতো ভিডিও, ছবি আর PDF রাখতে পারবেন।' })
+      ])
+    ];
+    if (!has) {
+      var steps = ['টপিকের নাম লিখে "তৈরি" চাপুন', 'টপিকের ভেতরে YouTube লিংক বা নিজের ভিডিও যোগ করুন', 'দরকারী ছবি, PDF আর নিজের নোটও সেখানেই রাখুন'];
+      kids.push(h('div', { class: 'how' }, steps.map(function (s, i) {
+        return h('div', {}, [h('b', { text: bn(i + 1) }), h('span', { text: s })]);
+      })));
+    }
+    return h('div', { class: 'card welcome' }, kids);
+  }
+
+  function releaseStage() {
+    closeLightbox();
+    if (ctx) {
+      ctx.tok++; ctx.ptok++;
+      if (ctx.urls.player) URL.revokeObjectURL(ctx.urls.player);
+      if (ctx.urls.pdf) URL.revokeObjectURL(ctx.urls.pdf);
+      ctx.urls.imgs.forEach(function (u) { URL.revokeObjectURL(u); });
+    }
+    ctx = null;
+  }
+  function setA(text, ok) {
+    if (!ctx) return;
+    ctx.msg.textContent = text || '';
+    ctx.msg.className = 'amsg' + (ok ? ' ok' : '');
+  }
+
+  function renderStage() {
+    var stage = $('#stage');
+    stage.textContent = '';
+    releaseStage();
+    var t = curTopic();
+    if (!t) { stage.appendChild(welcome()); return; }
+
+    var c = ctx = {
+      t: t, tok: 0, ptok: 0, urls: { player: null, pdf: null, imgs: [] }, openPdfId: null,
+      msg: h('p', { class: 'amsg', role: 'status' }),
+      head: h('div', { class: 'sec' }),
+      vidSec: h('div', { class: 'stagevid' }),
+      playerBox: h('div'),
+      vmeta: h('div', { class: 'vmeta' }),
+      listSec: h('div', { class: 'sec' }),
+      vlist: h('div', { class: 'vlist' }),
+      addSec: h('div', { class: 'sec' }),
+      imgSec: h('div', { class: 'sec' }),
+      pdfSec: h('div', { class: 'sec' }),
+      viewer: h('div', { class: 'pdfview', hidden: '' }),
+      noteSec: h('div', { class: 'sec notes' })
+    };
+    c.vidSec.appendChild(c.playerBox);
+    c.vidSec.appendChild(c.vmeta);
+
+    buildHead(c);
+    buildAdd(c);
+    buildNotes(c);
+
+    var card = h('article', { class: 'card' }, [c.head, c.vidSec, c.listSec, c.addSec, c.imgSec, c.pdfSec, c.noteSec]);
+    stage.appendChild(card);
+
+    ['dragenter', 'dragover'].forEach(function (ev) {
+      card.addEventListener(ev, function (e) { e.preventDefault(); card.classList.add('over'); });
+    });
+    card.addEventListener('dragleave', function (e) { if (e.target === card) card.classList.remove('over'); });
+    card.addEventListener('drop', function (e) {
+      e.preventDefault(); card.classList.remove('over');
+      addFiles(toArr(e.dataTransfer && e.dataTransfer.files));
+    });
+
+    refreshAll();
+  }
+
+  function refreshAll() {
+    renderPlayer();
+    renderVList();
+    renderImages();
+    renderPdfs();
+    refreshEmptyHint();
+  }
+
+  /* ---------- টপিকের শিরোনাম ---------- */
+  function buildHead(c) {
+    var t = c.t;
+    var inp = h('input', { class: 'title-input', type: 'text', id: 'topicTitle', value: t.title, 'aria-label': 'টপিকের নাম বদলান', title: 'নাম বদলাতে এখানে লিখুন' });
+    inp.addEventListener('change', function () {
+      var v = inp.value.trim();
+      if (!v) { inp.value = t.title; return; }
+      t.title = v; saveT(); renderRail();
+    });
+    var del = btn('টপিক মুছুন', 'trash', 'sm danger');
+    del.addEventListener('click', function () {
+      armDelete(del, function () {
+        var ids = fileIdsOf(t.items);
+        delFiles(ids).catch(function () {}).then(function () {
+          var i = topics.indexOf(t);
+          topics = topics.filter(function (x) { return x.id !== t.id; });
+          saveT();
+          ui.topic = topics.length ? topics[Math.min(i, topics.length - 1)].id : null;
+          ui.vid = null; saveUI();
+          renderOuter(); renderStage();
+        });
+      }, 'নিশ্চিত? সব ফাইল মুছে যাবে', 'টপিক মুছুন');
+    });
+    c.head.appendChild(h('div', { class: 'head' }, [h('p', { class: 'eyebrow', text: 'টপিক' }), del]));
+    c.head.appendChild(inp);
+  }
+
+  /* ---------- ভিডিও: প্লেয়ার ---------- */
+  function renderPlayer() {
+    var c = ctx; if (!c) return;
+    var t = c.t;
+    if (c.urls.player) { URL.revokeObjectURL(c.urls.player); c.urls.player = null; }
+    c.ptok++;
+    c.playerBox.textContent = '';
+    c.vmeta.textContent = '';
+    var v = curVideo(t);
+    c.vidSec.hidden = !v;
+    if (!v) return;
+    ui.vid = v.id; saveUI();
+    var ptok = ++c.ptok;
+    if (v.kind === 'yt') {
+      c.playerBox.appendChild(h('div', { class: 'player' }, [h('iframe', {
+        src: embedUrl(v), title: v.title,
+        allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen',
+        allowfullscreen: '', referrerpolicy: 'strict-origin-when-cross-origin'
+      })]));
+    } else {
+      var box = h('div', { class: 'player filebox' }, [h('p', { class: 'pmsg', text: 'ভিডিও খোলা হচ্ছে…' })]);
+      c.playerBox.appendChild(box);
+      getFile(v.fileId).then(function (blob) {
+        if (ctx !== c || c.ptok !== ptok || curVideo(t) !== v) return;
+        box.textContent = '';
+        if (!blob) { box.appendChild(h('p', { class: 'pmsg', text: 'ভিডিওর ফাইল পাওয়া যায়নি। মুছে আবার যোগ করুন।' })); return; }
+        var url = URL.createObjectURL(blob);
+        c.urls.player = url;
+        var el = h('video', { controls: '', playsinline: '', preload: 'metadata', src: url });
+        var last = 0;
+        el.addEventListener('loadedmetadata', function () {
+          if (v.pos > 5 && el.duration && v.pos < el.duration - 5) el.currentTime = v.pos;
+        });
+        el.addEventListener('timeupdate', function () {
+          var now = Date.now();
+          if (now - last > 3000) { last = now; v.pos = Math.floor(el.currentTime); saveT(); }
+        });
+        el.addEventListener('pause', function () { v.pos = Math.floor(el.currentTime); saveT(); });
+        el.addEventListener('error', function () {
+          box.textContent = '';
+          box.appendChild(h('p', { class: 'pmsg', text: 'এই ভিডিও ব্রাউজারে চলছে না। MP4 (H.264) ফরম্যাটে বদলে আবার যোগ করুন।' }));
+        });
+        box.appendChild(el);
+      }).catch(function () {
+        box.textContent = '';
+        box.appendChild(h('p', { class: 'pmsg', text: 'ভিডিওটি খোলা যায়নি।' }));
+      });
+    }
+    renderVMeta(v);
+  }
+  function renderVMeta(v) {
+    var c = ctx; if (!c) return;
+    var t = c.t;
+    var vids = itemsOf(t, 'video');
+    var idx = vids.indexOf(v);
+    c.vmeta.textContent = '';
+    var inp = h('input', { class: 'title-input sm', type: 'text', id: 'videoTitle', value: v.title, 'aria-label': 'ভিডিওর নাম বদলান', title: 'নাম বদলাতে এখানে লিখুন' });
+    inp.addEventListener('change', function () {
+      var val = inp.value.trim();
+      if (!val) { inp.value = v.title; return; }
+      v.title = val; saveT(); renderVList();
+    });
+    var acts = [];
+    if (idx > 0) acts.push(btn('আগের', 'prev', '', function () { pickVideo(vids[idx - 1].id); }));
+    acts.push(v.done
+      ? btn('শেষ হয়েছে', 'check', 'done', function () { v.done = false; saveT(); renderVMeta(v); renderVList(); renderOuter(); })
+      : btn('শেষ হয়েছে', 'check', 'primary', function () { v.done = true; saveT(); renderVMeta(v); renderVList(); renderOuter(); }));
+    if (idx < vids.length - 1) acts.push(btn('পরের ভিডিও', 'next', '', function () { pickVideo(vids[idx + 1].id); }));
+    if (v.kind === 'yt') acts.push(linkBtn('YouTube-এ খুলুন', 'ext', watchUrl(v)));
+    acts.push(h('span', { class: 'spacer' }));
+    var del = btn('মুছুন', 'trash', 'danger');
+    del.addEventListener('click', function () {
+      armDelete(del, function () { removeItem(v); });
+    });
+    acts.push(del);
+    c.vmeta.appendChild(h('p', { class: 'eyebrow', text: 'ভিডিও ' + bn(idx + 1) + ' / ' + bn(vids.length) + (v.kind === 'video' ? ' · ' + fmtSize(v.size || 0) : '') }));
+    c.vmeta.appendChild(inp);
+    c.vmeta.appendChild(h('div', { class: 'actions' }, acts));
+    if (v.kind === 'yt') {
+      c.vmeta.appendChild(h('p', { class: 'note-small', text: 'ভিডিও না চললে "YouTube-এ খুলুন" চাপুন। কিছু ভিডিওর মালিক অন্য সাইটে চালানো বন্ধ রাখেন।' }));
+    }
+  }
+  function pickVideo(id) {
+    ui.vid = id; saveUI();
+    renderPlayer(); renderVList();
+    if (ctx) ctx.vidSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* ---------- ভিডিওর তালিকা ---------- */
+  function renderVList() {
+    var c = ctx; if (!c) return;
+    var vids = itemsOf(c.t, 'video');
+    c.listSec.textContent = '';
+    c.listSec.hidden = vids.length < 2;
+    if (vids.length < 2) return;
+    var cur = curVideo(c.t);
+    c.vlist.textContent = '';
+    vids.forEach(function (v, i) {
+      var th = h('span', { class: 'vthumb' }, [icon(v.kind === 'video' ? 'film' : 'play', 18)]);
+      if (v.vid) {
+        var img = h('img', { src: 'https://i.ytimg.com/vi/' + v.vid + '/mqdefault.jpg', alt: '', loading: 'lazy' });
+        img.addEventListener('error', function () { img.remove(); });
+        th.appendChild(img);
+      }
+      if (v.done) th.appendChild(h('span', { class: 'tick' }, [icon('check', 13)]));
+      var meta = h('span', { class: 'm' }, [document.createTextNode('ভিডিও ' + bn(i + 1) + ' · ' + (v.kind === 'video' ? 'নিজের ফাইল' : (v.list ? 'প্লেলিস্ট' : 'YouTube')) + (v.done ? ' · শেষ' : ''))]);
+      if (cur && cur.id === v.id) { meta.appendChild(document.createTextNode(' · ')); meta.appendChild(h('b', { text: 'চলছে' })); }
+      c.vlist.appendChild(h('button', {
+        class: 'vrow', type: 'button', 'aria-current': String(!!cur && cur.id === v.id),
+        onclick: function () { pickVideo(v.id); }
+      }, [th, h('span', {}, [h('span', { class: 't', text: v.title }), meta])]));
+    });
+    c.listSec.appendChild(h('div', { class: 'head' }, [h('h3', {}, [document.createTextNode('এই টপিকের ভিডিও'), h('span', { class: 'cnt', text: bn(vids.length) + 'টি' })])]));
+    c.listSec.appendChild(c.vlist);
+  }
+
+  /* ---------- যোগ করার জায়গা ---------- */
+  function buildAdd(c) {
+    var link = h('input', { class: 'field', id: 'ytLink', type: 'url', placeholder: 'YouTube লিংক paste করুন', 'aria-label': 'YouTube লিংক', autocomplete: 'off' });
+    var addBtn = h('button', { class: 'btn accent', type: 'submit' }, [icon('plus', 16), h('span', { class: 'lbl', text: 'ভিডিও যোগ' })]);
+    var form = h('form', { class: 'linkrow', novalidate: '' }, [link, addBtn]);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      addYouTube(link, addBtn);
+    });
+    c.addSec.appendChild(h('div', { class: 'head' }, [h('h3', { text: 'এই টপিকে যোগ করুন' })]));
+    c.addSec.appendChild(h('div', { class: 'addpanel' }, [
+      form,
+      h('div', { class: 'addbtns' }, [
+        btn('নিজের ভিডিও ফাইল', 'film', 'sm', function () { $('#fVideo').click(); }),
+        btn('PDF', 'file', 'sm', function () { $('#fPdf').click(); }),
+        btn('ছবি', 'image', 'sm', function () { $('#fImg').click(); })
+      ]),
+      c.msg,
+      h('p', { class: 'note-small', text: 'যেকোনো ফাইল এই কার্ডের ওপর drag করে ছেড়ে দিলেও যোগ হবে। ছবি বা স্ক্রিনশট কপি করে Ctrl+V দিলেও হবে।' })
+    ]));
+  }
+  function addYouTube(link, addBtn) {
+    var c = ctx; if (!c) return;
+    var t = c.t;
+    var parsed = parseYT(link.value);
+    if (!parsed) { setA('এটা YouTube লিংক মনে হচ্ছে না। লিংকটা পুরো কপি করে আবার paste করুন।'); return; }
+    var dup = t.items.filter(function (it) { return it.kind === 'yt' && ((parsed.vid && it.vid === parsed.vid) || (parsed.list && it.list === parsed.list)); })[0];
+    if (dup) { setA('এই ভিডিও এই টপিকে আগেই আছে: ' + dup.title); pickVideo(dup.id); return; }
+    addBtn.disabled = true;
+    setA('যোগ হচ্ছে…', true);
+    var src = parsed.vid ? 'https://www.youtube.com/watch?v=' + parsed.vid : 'https://www.youtube.com/playlist?list=' + parsed.list;
+    fetchTitle(src).then(function (title) {
+      addBtn.disabled = false;
+      var it = { id: uid(), kind: 'yt', vid: parsed.vid, list: parsed.list, start: parsed.start,
+                 title: title || ('ভিডিও ' + bn(itemsOf(t, 'video').length + 1)), done: false };
+      t.items.push(it);
+      saveT();
+      link.value = '';
+      renderOuter();
+      if (ctx !== c) return;
+      ui.vid = it.id; saveUI();
+      refreshAll();
+      setA('ভিডিও যোগ হয়েছে।', true);
+    });
+  }
+  function addFiles(files) {
+    var c = ctx; if (!c) return;
+    var t = c.t;
+    var list = files.filter(function (f) { return isVid(f) || isPdf(f) || isImg(f); });
+    if (!list.length) { if (files.length) setA('এই ধরনের ফাইল যোগ করা যায় না। ভিডিও, PDF বা ছবি দিন।'); return; }
+    setA('সেভ হচ্ছে, বড় ভিডিও হলে একটু সময় লাগবে…', true);
+    var added = 0, failed = 0, lastVid = null;
+    list.reduce(function (p, f) {
+      return p.then(function () {
+        var id = uid();
+        return putFile(id, f).then(function () {
+          var kind = isVid(f) ? 'video' : (isPdf(f) ? 'pdf' : 'image');
+          var title;
+          if (kind === 'image') {
+            title = (f.name && !/^image\.\w+$/i.test(f.name)) ? stripExt(f.name) : 'ছবি ' + bn(itemsOf(t, 'image').length + 1);
+          } else { title = stripExt(f.name); }
+          t.items.push({ id: id, kind: kind, title: title, fileId: id, size: f.size, done: false, pos: 0 });
+          if (kind === 'video') lastVid = id;
+          added++;
+        }).catch(function () { failed++; });
+      });
+    }, Promise.resolve()).then(function () {
+      saveT();
+      renderOuter();
+      if (ctx !== c) return;
+      if (lastVid) { ui.vid = lastVid; saveUI(); refreshAll(); }
+      else { renderImages(); renderPdfs(); refreshEmptyHint(); }
+      setA(failed ? (bn(added) + 'টি যোগ হয়েছে, ' + bn(failed) + 'টি সেভ করা যায়নি (জায়গা কম হতে পারে)।') : (bn(added) + 'টি ফাইল যোগ হয়েছে।'), !failed);
+    });
+  }
+  function removeItem(it) {
+    var c = ctx; if (!c) return;
+    var t = c.t;
+    var wasVideo = isVideoItem(it);
+    var vids = itemsOf(t, 'video');
+    var pos = vids.indexOf(it);
+    t.items = t.items.filter(function (x) { return x.id !== it.id; });
+    saveT();
+    if (it.fileId) delFiles([it.fileId]).catch(function () {});
+    if (c.openPdfId === it.id) closePdf();
+    if (wasVideo && ui.vid === it.id) {
+      var left = itemsOf(t, 'video');
+      ui.vid = left.length ? left[Math.min(pos, left.length - 1)].id : null;
+      saveUI();
+    }
+    renderOuter();
+    if (wasVideo) renderPlayer();
+    renderVList(); renderImages(); renderPdfs(); refreshEmptyHint();
+  }
+
+  /* ---------- ছবি ---------- */
+  function openLightbox(url, name) {
+    closeLightbox();
+    var ov = h('div', { class: 'lightbox', role: 'dialog', 'aria-modal': 'true', 'aria-label': name }, [
+      h('img', { src: url, alt: name }),
+      h('p', { class: 'lbcap', text: name }),
+      h('button', { class: 'lbclose', type: 'button', 'aria-label': 'বন্ধ করুন', onclick: closeLightbox }, [icon('x', 22)])
+    ]);
+    ov.addEventListener('click', function (e) { if (e.target === ov) closeLightbox(); });
+    document.body.appendChild(ov);
+    lightbox = ov;
+    ov.querySelector('button').focus();
+  }
+  function renderImages() {
+    var c = ctx; if (!c) return;
+    var imgs = itemsOf(c.t, 'image');
+    var tok = ++c.tok;
+    c.imgSec.hidden = !imgs.length;
+    if (!imgs.length) { c.imgSec.textContent = ''; c.urls.imgs.splice(0).forEach(function (u) { URL.revokeObjectURL(u); }); return; }
+    Promise.all(imgs.map(function (a) { return getFile(a.fileId).catch(function () { return null; }); })).then(function (blobs) {
+      if (ctx !== c || c.tok !== tok) return;
+      c.urls.imgs.splice(0).forEach(function (u) { URL.revokeObjectURL(u); });
+      c.imgSec.textContent = '';
+      var grid = h('div', { class: 'imgs' });
+      imgs.forEach(function (a, i) {
+        var blob = blobs[i];
+        if (!blob) return;
+        var url = URL.createObjectURL(blob);
+        c.urls.imgs.push(url);
+        var del = h('button', { class: 'imgdel', type: 'button', 'aria-label': 'ছবি মুছুন' }, [icon('trash', 14), h('span', { class: 'lbl', text: 'মুছুন' })]);
+        del.addEventListener('click', function () { armDelete(del, function () { removeItem(a); }, 'নিশ্চিত?', 'মুছুন'); });
+        grid.appendChild(h('div', { class: 'imgcell' }, [
+          h('button', { class: 'imgopen', type: 'button', 'aria-label': a.title + ' বড় করে দেখুন', onclick: function () { openLightbox(url, a.title); } }, [
+            h('img', { src: url, alt: a.title })
+          ]),
+          h('span', { class: 'imgcap', text: a.title }),
+          del
+        ]));
+      });
+      c.imgSec.appendChild(h('div', { class: 'head' }, [h('h3', {}, [document.createTextNode('গুরুত্বপূর্ণ ছবি'), h('span', { class: 'cnt', text: bn(imgs.length) + 'টি' })])]));
+      c.imgSec.appendChild(grid);
+    });
+  }
+
+  /* ---------- PDF ---------- */
+  function closePdf() {
+    var c = ctx; if (!c) return;
+    c.viewer.hidden = true;
+    c.viewer.textContent = '';
+    c.openPdfId = null;
+    if (c.urls.pdf) { URL.revokeObjectURL(c.urls.pdf); c.urls.pdf = null; }
+  }
+  function openPdf(a) {
+    var c = ctx; if (!c) return;
+    getFile(a.fileId).then(function (blob) {
+      if (ctx !== c) return;
+      if (!blob) { setA('এই PDF-এর ফাইল পাওয়া যায়নি। মুছে আবার যোগ করুন।'); return; }
+      if (c.urls.pdf) URL.revokeObjectURL(c.urls.pdf);
+      var url = c.urls.pdf = URL.createObjectURL(blob);
+      var v = c.viewer;
+      v.textContent = '';
+      v.hidden = false;
+      c.openPdfId = a.id;
+      v.appendChild(h('div', { class: 'bar' }, [
+        h('b', { text: a.title }),
+        h('span', { class: 'actions' }, [
+          linkBtn('নতুন ট্যাবে খুলুন', 'ext', url, 'sm'),
+          btn('বন্ধ করুন', 'x', 'sm', closePdf)
+        ])
+      ]));
+      v.appendChild(h('div', { class: 'frame' }, [h('iframe', { src: url, title: a.title })]));
+      v.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }).catch(function () { setA('PDF খোলা যায়নি।'); });
+  }
+  function renderPdfs() {
+    var c = ctx; if (!c) return;
+    var pdfs = itemsOf(c.t, 'pdf');
+    c.pdfSec.textContent = '';
+    c.pdfSec.hidden = !pdfs.length;
+    if (!pdfs.length) { c.openPdfId = null; return; }
+    c.pdfSec.appendChild(h('div', { class: 'head' }, [h('h3', {}, [document.createTextNode('PDF'), h('span', { class: 'cnt', text: bn(pdfs.length) + 'টি' })])]));
+    var stack = h('div', { class: 'stack' });
+    pdfs.forEach(function (a) {
+      var del = btn('মুছুন', 'trash', 'sm danger');
+      del.addEventListener('click', function () { armDelete(del, function () { removeItem(a); }, 'নিশ্চিত?', 'মুছুন'); });
+      stack.appendChild(h('div', { class: 'pdfrow' }, [
+        h('span', { class: 'ic' }, [icon('file', 22)]),
+        h('span', { class: 'nm' }, [document.createTextNode(a.title), h('small', { text: 'PDF · ' + fmtSize(a.size || 0) })]),
+        h('span', { class: 'rowbtns' }, [btn('খুলুন', null, 'sm', function () { openPdf(a); }), del])
+      ]));
+    });
+    c.pdfSec.appendChild(stack);
+    c.pdfSec.appendChild(c.viewer);
+    if (c.openPdfId && !pdfs.some(function (x) { return x.id === c.openPdfId; })) closePdf();
+  }
+  function refreshEmptyHint() {
+    var c = ctx; if (!c) return;
+    var old = c.addSec.querySelector('.emptytopic');
+    if (old) old.remove();
+    if (!c.t.items.length) {
+      c.addSec.appendChild(h('p', { class: 'emptytopic', text: 'এই টপিকে এখনও কিছু নেই। উপরের ঘরে YouTube লিংক paste করুন, অথবা নিজের ফাইল যোগ করুন।' }));
+    }
+  }
+
+  /* ---------- নোট ---------- */
+  function buildNotes(c) {
+    var t = c.t;
+    var saved = h('span', { class: 'saved', 'aria-live': 'polite' });
+    var ta = h('textarea', { id: 'noteArea', placeholder: 'এই টপিকের গুরুত্বপূর্ণ কথা, সূত্র বা প্রশ্ন এখানে লিখে রাখুন…', 'aria-label': 'টপিকের নোট' });
+    ta.value = t.note || '';
+    ta.addEventListener('input', function () {
+      t.note = ta.value;
+      saveT();
+      saved.textContent = 'সেভ হয়েছে';
+      clearTimeout(savedTimer);
+      savedTimer = setTimeout(function () { saved.textContent = ''; }, 1500);
+    });
+    c.noteSec.appendChild(h('div', { class: 'head' }, [h('h3', { text: 'আমার নোট' }), saved]));
+    c.noteSec.appendChild(ta);
+  }
+
+  /* ---------- টপিক বেছে নেওয়া ও তৈরি ---------- */
+  function selectTopic(id) {
+    ui.topic = id; ui.vid = null; saveUI();
+    renderRail(); renderStage();
+    if (window.matchMedia('(max-width: 960px)').matches) $('#stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('#newTopicForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var inp = $('#newTopic');
+    var name = inp.value.trim();
+    var msg = $('#msgTopic');
+    if (!name) { msg.textContent = 'টপিকের একটা নাম লিখুন।'; msg.className = 'msg'; return; }
+    var dup = topics.filter(function (t) { return t.title.toLowerCase() === name.toLowerCase(); })[0];
+    if (dup) { msg.textContent = 'এই নামে টপিক আগেই আছে, সেটা খুলে দিলাম।'; msg.className = 'msg'; selectTopic(dup.id); return; }
+    var t = { id: uid(), title: name, note: '', items: [] };
+    topics.unshift(t);
+    saveT();
+    inp.value = '';
+    msg.textContent = '';
+    query = ''; $('#q').value = '';
+    selectTopic(t.id);
+    renderHero();
+  });
+  $('#q').addEventListener('input', function (e) { query = e.target.value; renderRail(); });
+
+  /* ---------- ফাইল বাটন, paste, drag ---------- */
+  $('#fVideo').addEventListener('change', function (e) { var f = toArr(e.target.files); e.target.value = ''; addFiles(f.filter(isVid).length ? f.filter(isVid) : f); });
+  $('#fPdf').addEventListener('change', function (e) { var f = toArr(e.target.files); e.target.value = ''; addFiles(f.filter(isPdf).length ? f.filter(isPdf) : f); });
+  $('#fImg').addEventListener('change', function (e) { var f = toArr(e.target.files); e.target.value = ''; addFiles(f.filter(isImg).length ? f.filter(isImg) : f); });
+  document.addEventListener('paste', function (e) {
+    if (!ctx) return;
+    var files = toArr(e.clipboardData && e.clipboardData.files).filter(isImg);
+    if (!files.length) return;
+    e.preventDefault();
+    addFiles(files);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox(); });
+  ['dragover', 'drop'].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      if (e.dataTransfer && toArr(e.dataTransfer.types).indexOf('Files') > -1) e.preventDefault();
+    });
+  });
+
+  /* ---------- শুরু ---------- */
+  toArr(document.querySelectorAll('[data-icon]')).forEach(function (el) {
+    el.insertBefore(icon(el.getAttribute('data-icon'), parseInt(el.getAttribute('data-size'), 10) || 18), el.firstChild);
+  });
+  try { $('#yr').textContent = bn(new Date().getFullYear()).replace(/,/g, ''); } catch (e) {}
+  try { $('#today').textContent = new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+
+  if (!topics.some(function (t) { return t.id === ui.topic; })) { ui.topic = topics.length ? topics[0].id : null; ui.vid = null; }
+  renderOuter();
+  renderStage();
+})();
+</script>
+</body>
+</html>
